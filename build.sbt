@@ -10,12 +10,8 @@ val jwt = project.in(file("."))
             "io.circe" %% "circe-parser" % "0.6.0",
             "com.typesafe.akka" %% "akka-actor" % "2.4.12",
             "com.typesafe.akka" %% "akka-http-core" % "3.0.0-RC1"
-//            "org.typelevel" %%% "cats" % "0.8.1"
-//            "com.lihaoyi" %%% "fastparse-byte" % "0.4.1",
-//            "org.scalaz" %%% "scalaz-core" % "7.2.7",
-//            "org.scalatest" %% "scalatest" % "3.0.0" % "test"
         ),
-        organization := "org.tilk",
+        organization := "eu.tilk",
         version := "0.0.1-SNAPSHOT",
         scalaVersion := "2.11.8",
         licenses += ("LGPL 3.0", url("https://opensource.org/licenses/LGPL-3.0")),
