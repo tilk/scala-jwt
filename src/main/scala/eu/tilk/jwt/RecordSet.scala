@@ -1,4 +1,4 @@
-package org.tilk.jwt
+package eu.tilk.jwt
 
 import scala.reflect.ClassTag
 import scala.collection.{AbstractMap, TraversableOnce}

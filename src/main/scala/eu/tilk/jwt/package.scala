@@ -1,4 +1,4 @@
-package org.tilk
+package eu.tilk
 
 package object jwt {
   type ClaimSet = RecordSet[Claim]

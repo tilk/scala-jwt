@@ -1,4 +1,4 @@
-package org.tilk.jwt
+package eu.tilk.jwt
 
 import akka.http.scaladsl.model._
 import java.util.Base64

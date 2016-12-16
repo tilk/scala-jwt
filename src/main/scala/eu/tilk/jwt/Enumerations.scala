@@ -1,4 +1,4 @@
-package org.tilk.jwt
+package eu.tilk.jwt
 
 sealed abstract class Zip
 object Zip extends Function1[String, Zip] {
