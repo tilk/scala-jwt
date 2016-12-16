@@ -5,10 +5,13 @@ import scala.collection.{AbstractMap, TraversableOnce}
 import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
 
 final class RecordSet[+T <: Record] private[jwt] (params : Map[Class[_], T], nparams : Map[String, T]) extends AbstractMap[String, T] {
-  def get[U <: Record : ClassTag] = params.get(implicitly[ClassTag[U]].runtimeClass).map(_.asInstanceOf[U].value)
+  def get[U <: Record : RecordType : ClassTag] = 
+    params.get(implicitly[ClassTag[U]].runtimeClass).map(_.asInstanceOf[U].value)
+    .orElse(nparams.get(implicitly[ClassTag[U]].getClass.getSimpleName).map(p => 
+      implicitly[RecordType[U]].apply(p.jsonValue).value))
   def get(s : String) = nparams.get(s)
   def apply[U <: Record : ClassTag] = params(implicitly[ClassTag[U]].runtimeClass).asInstanceOf[U].value
-  def contains[U <: Record : ClassTag] = get[U].isDefined
+  def contains[U <: Record : RecordType : ClassTag] = get[U].isDefined
   def +[U >: T <: Record](param : U) = new RecordSet(params + ((param.getClass, param)), nparams + ((param.name, param)))
   def +[U >: T](kv : (String, U)) = { val param = kv._2.asInstanceOf[T]; assert(kv._1 == param.name); this + param }
   def -(k : String) = new RecordSet(nparams.get(k).map(params - _.getClass).getOrElse(params), nparams - k)
