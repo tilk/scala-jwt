@@ -19,22 +19,45 @@ final class JwtValidator(audience : Option[String] = None) {
   import Header._
   def validate(s : String) : Jwt = { // RFC 7519 7.2
     // steps 1, 2, 3
-    val (bheader :: rest) = s.split('.').toList.map(Base64.getUrlDecoder.decode(_))
+    // only the Compact representation is supported for now
+    val (sheader :: srest) = s.split('.').toList
+    val (bheader :: brest) = (sheader::srest).map(Base64.getUrlDecoder.decode(_))
     // steps 4, 5
     val headers = HeaderSet(new String(bheader, StandardCharsets.UTF_8))
     // steps 6, 7
     val msg = if (headers.contains[enc]) { // JWE; RFC 7516 5.2
       // step 1
-      val List(benckey, binitv, bctext, bauthtag) = rest
+      val List(benckey, binitv, bctext, bauthtag) = brest
       // steps 2, 3, 4 implicit
       // TODO step 5
       // TODO steps 6-
       throw new UnsupportedOperationException()
     } else { // JWS; RFC 7515 5.2
       // step 1
-      val List(bpayload, bsignature) = rest
+      val List(spayload, ssignature) = srest
+      val List(bpayload, bsignature) = brest
       // steps 2, 3, 4, 6, 7 implicit
       // TODO step 5
+      val algo = SignatureAlgorithm(headers[alg])
+      headers.get[jku].foreach { u =>
+        // TODO JKU
+      }
+      headers.get[jwk].foreach { k =>
+        // TODO JWK
+      }
+      headers.get[kid].foreach { i =>
+        // TODO kid
+      }
+      headers.get[crit].foreach { c =>
+        c.foreach { h => 
+          if (!headers.contains(h))
+            throw new IllegalArgumentException("header specified by crit does not exist")
+          // TODO test support for the header
+        }
+      }
+      // step 8
+      val ssigninput = spayload ++ "." ++ ssignature
+      // TODO verify the signature
       bpayload
     }
     // step 8
