@@ -35,3 +35,4 @@ object ClaimSet extends RecordSetFactory(Claim)
 
 object HeaderSet extends RecordSetFactory(Header)
 
+object ParameterSet extends RecordSetFactory(Parameter)

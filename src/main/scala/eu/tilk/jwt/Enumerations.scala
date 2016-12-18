@@ -101,3 +101,63 @@ object Algorithm extends Function1[String, Algorithm] {
     case _ => throw new IllegalArgumentException()
   }
 }
+
+sealed abstract class KeyType
+object KeyType extends Function1[String, KeyType] {
+  case object EC extends KeyType
+  case object RSA extends KeyType
+  case object oct extends KeyType
+  def apply(s : String) = s match {
+    case "EC" => EC
+    case "RSA" => RSA
+    case "oct" => oct
+    case _ => throw new IllegalArgumentException()
+  }
+}
+
+sealed abstract class KeyUse
+object KeyUse extends Function1[String, KeyUse] {
+  case object sig extends KeyUse
+  case object enc extends KeyUse
+  def apply(s : String) = s match {
+    case "sig" => sig
+    case "enc" => enc
+    case _ => throw new IllegalArgumentException()
+  }
+}
+
+sealed abstract class KeyOp
+object KeyOp extends Function1[String, KeyOp] {
+  case object sign extends KeyOp
+  case object verify extends KeyOp
+  case object encrypt extends KeyOp
+  case object decrypt extends KeyOp
+  case object wrapKey extends KeyOp
+  case object unwrapKey extends KeyOp
+  case object deriveKey extends KeyOp
+  case object deriveBits extends KeyOp
+  def apply(s : String) = s match {
+    case "sign" => sign
+    case "verify" => verify
+    case "encrypt" => encrypt
+    case "decrypt" => decrypt
+    case "wrapKey" => wrapKey
+    case "unwrapKey" => unwrapKey
+    case "deriveKey" => deriveKey
+    case "deriveBits" => deriveBits
+    case _ => throw new IllegalArgumentException()
+  }
+}
+
+sealed abstract class Curve
+object Curve extends Function1[String, Curve] {
+  case object `P-256` extends Curve
+  case object `P-384` extends Curve
+  case object `P-521` extends Curve
+  def apply(s : String) = s match {
+    case "P-256" => `P-256`
+    case "P-384" => `P-384`
+    case "P-521" => `P-521`
+    case _ => throw new IllegalArgumentException()
+  }
+}
