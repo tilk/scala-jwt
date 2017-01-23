@@ -3,6 +3,8 @@ package eu.tilk.jwt
 import akka.http.scaladsl.model._
 import java.time.{Instant, LocalDate, ZoneId}
 import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
+import java.util.Base64
+import java.math.BigInteger
 
 trait Record {
   type T
@@ -24,6 +26,8 @@ abstract class UriRecord extends SimpleRecord[Uri]
 abstract class ListRecord[T](f : T => Json) extends FRecord((x : List[T]) => Json.fromValues(x.map(f)))
 abstract class BooleanRecord extends SimpleRecord[Boolean]
 abstract class ZoneIdRecord extends SimpleRecord[ZoneId]
+abstract class Base64Record extends FRecord((x : Array[Byte]) => Json.fromString(Base64.getUrlEncoder.encodeToString(x)))
+abstract class Base64UIntRecord extends FRecord((x : BigInteger) => Json.fromString(Base64.getUrlEncoder.encodeToString(x.toByteArray)))
 
 trait RecordType[+T <: Record] {
   def apply(json : Json) : T
@@ -45,6 +49,8 @@ abstract class ListOrSingleRecordType[T <: ListRecord[U], U](f : Json => U)
   extends FRecordType[T](x => x.asArray.map(_.map(f)).getOrElse(List(f(x))))
 abstract class BooleanRecordType[T <: BooleanRecord] extends FRecordType[T](_.asBoolean.get)
 abstract class ZoneIdRecordType[T <: ZoneIdRecord] extends SimpleRecordType[T, ZoneId](ZoneId.of)
+abstract class Base64RecordType[T <: Base64Record] extends FRecordType[T](x => Base64.getUrlDecoder.decode(x.asString.get))
+abstract class Base64UIntRecordType[T <: Base64UIntRecord] extends FRecordType[T](x => new BigInteger(1, Base64.getUrlDecoder.decode(x.asString.get)))
 
 trait UnknownRecordType[+T <: Record] {
   def apply(name : String, json : Json) : T
@@ -194,7 +200,7 @@ object Header extends RecordKind[Header] {
   
   // RFC 7515, 7516
   
-  case class alg(val value : Algorithm) extends SimpleRecord[Algorithm] with Header
+  case class alg(val value : Algorithm) extends SimpleRecord[Algorithm] with Header with Parameter
   implicit object alg extends SimpleRecordType[alg, Algorithm](Algorithm)  
   
   case class jku(val value : Uri) extends UriRecord with Header
@@ -203,19 +209,19 @@ object Header extends RecordKind[Header] {
   case class jwk(val value : String) extends StringRecord with Header // TODO JWK
   implicit object jwk extends StringRecordType[jwk]
   
-  case class kid(val value : String) extends StringRecord with Header
+  case class kid(val value : String) extends StringRecord with Header with Parameter
   implicit object kid extends StringRecordType[kid]
   
-  case class x5u(val value : Uri) extends UriRecord with Header
+  case class x5u(val value : Uri) extends UriRecord with Header with Parameter
   implicit object x5u extends UriRecordType[x5u]
   
-  case class x5c(val value : List[String]) extends ListRecord(Json.fromString) with Header
+  case class x5c(val value : List[String]) extends ListRecord(Json.fromString) with Header with Parameter
   implicit object x5c extends ListRecordType[x5c, String](_.asString.get)
   
-  case class x5t(val value : String) extends StringRecord with Header
+  case class x5t(val value : String) extends StringRecord with Header with Parameter
   implicit object x5t extends StringRecordType[x5t]
   
-  case class `x5t#S256`(val value : String) extends StringRecord with Header
+  case class `x5t#S256`(val value : String) extends StringRecord with Header with Parameter
   implicit object `x5t#S256` extends StringRecordType[`x5t#S256`]
   
   case class crit(val value : List[String]) extends ListRecord(Json.fromString) with Header
@@ -228,5 +234,58 @@ object Header extends RecordKind[Header] {
   implicit object zip extends SimpleRecordType[zip, Zip](Zip)
   
   case class unknown(override val name : String, val value : Json) extends JValueRecord with Header
+  implicit object unknown extends UnknownRecordType[unknown]
+}
+
+trait Parameter extends Record
+object Parameter extends RecordKind[Parameter] {
+  protected val recordTypes = List(kty, use, key_ops, Header.alg, Header.kid, Header.x5u, Header.x5c, Header.x5t, Header.`x5t#S256`)
+  
+  case class kty(val value : KeyType) extends SimpleRecord[KeyType] with Parameter
+  implicit object kty extends SimpleRecordType[kty, KeyType](KeyType)
+  
+  case class use(val value : KeyUse) extends SimpleRecord[KeyUse] with Parameter
+  implicit object use extends SimpleRecordType[use, KeyUse](KeyUse)
+  
+  case class key_ops(val value : List[KeyOp]) extends ListRecord[KeyOp]((Json.fromString(_)) compose (_.toString)) with Parameter
+  implicit object key_ops extends ListRecordType[key_ops, KeyOp](KeyOp compose (_.asString.get))
+  
+  case class crv(val value : Curve) extends SimpleRecord[Curve] with Parameter
+  implicit object crv extends SimpleRecordType[crv, Curve](Curve)
+  
+  case class k(val value : Array[Byte]) extends Base64Record with Parameter
+  implicit object k extends Base64RecordType[k]
+  
+  case class x(val value : Array[Byte]) extends Base64Record with Parameter
+  implicit object x extends Base64RecordType[x]
+  
+  case class y(val value : Array[Byte]) extends Base64Record with Parameter
+  implicit object y extends Base64RecordType[y]
+  
+  case class d(val value : BigInteger) extends Base64UIntRecord with Parameter
+  implicit object d extends Base64UIntRecordType[d]
+  
+  case class n(val value : BigInteger) extends Base64UIntRecord with Parameter
+  implicit object n extends Base64UIntRecordType[n]
+
+  case class e(val value : BigInteger) extends Base64UIntRecord with Parameter
+  implicit object e extends Base64UIntRecordType[e]
+  
+  case class p(val value : BigInteger) extends Base64UIntRecord with Parameter
+  implicit object p extends Base64UIntRecordType[p]
+  
+  case class q(val value : BigInteger) extends Base64UIntRecord with Parameter
+  implicit object q extends Base64UIntRecordType[q]
+  
+  case class dp(val value : BigInteger) extends Base64UIntRecord with Parameter
+  implicit object dp extends Base64UIntRecordType[dp]
+  
+  case class dq(val value : BigInteger) extends Base64UIntRecord with Parameter
+  implicit object dq extends Base64UIntRecordType[dq]
+  
+  case class qi(val value : BigInteger) extends Base64UIntRecord with Parameter
+  implicit object qi extends Base64UIntRecordType[qi]
+  
+  case class unknown(override val name : String, val value : Json) extends JValueRecord with Parameter
   implicit object unknown extends UnknownRecordType[unknown]
 }
