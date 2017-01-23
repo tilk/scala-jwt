@@ -1,4 +1,5 @@
-scalaVersion in ThisBuild := "2.11.8"
+scalaVersion in ThisBuild := "2.12.1"
+crossScalaVersions in ThisBuild := Seq("2.11.8", "2.12.1")
 
 import ReleaseTransformations._
 
@@ -26,11 +27,10 @@ val jwt = project.in(file("."))
             "io.circe" %% "circe-generic" % "0.6.0",
             "io.circe" %% "circe-parser" % "0.6.0",
             "com.typesafe.akka" %% "akka-actor" % "2.4.12",
-            "com.typesafe.akka" %% "akka-http-core" % "3.0.0-RC1"
+            "com.typesafe.akka" %% "akka-http-core" % "10.0.1"
         ),
         organization := "eu.tilk",
         version := "0.0.1-SNAPSHOT",
-        scalaVersion := "2.11.8",
         licenses += ("LGPL 3.0", url("https://opensource.org/licenses/LGPL-3.0")),
         scmInfo := Some(ScmInfo(
             url("https://github.com/tilk/scala-jwt"),
